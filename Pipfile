@@ -1,0 +1,13 @@
+[[source]]
+url = "https://pypi.org/simple"
+verify_ssl = true
+name = "pypi"
+
+[packages]
+django = "*"
+
+[dev-packages]
+
+[requires]/Users/ahmedezzat/.local/share/virtualenvs/storefront-ff2H4Mtd
+
+python_version = "3.13"
