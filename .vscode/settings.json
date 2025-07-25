@@ -1,3 +1,8 @@
 {
-  "python.pythonPath": "/Users/moshfeghhamedani/.local/share/virtualenvs/storefront-Xk9k71tz/bin/python"
+  "python.pythonPath": "/Users/moshfeghhamedani/.local/share/virtualenvs/storefront-Xk9k71tz/bin/python",
+  "python.languageServer": "Pylance",
+  "python.analysis.languageServerMode": "full",
+  // "python.analysis.typeCheckingMode": "basic"
+
+
 }
