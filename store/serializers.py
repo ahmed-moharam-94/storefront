@@ -46,7 +46,7 @@ class ProductSerializer(serializers.ModelSerializer):
 
     collection = serializers.HyperlinkedRelatedField(
         # queryset = Collection.objects.all(),
-        view_name = 'collection-details',
+        view_name = 'collection-detail',
         read_only = True
     )
 

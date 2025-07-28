@@ -13,7 +13,7 @@ from store import serializers
 from store.serializers import CollectionSerializer, ProductSerializer
 
 # from store.serializers import ProductSerializer
-from .models import Product, Collection
+from .models import OrderItem, Product, Collection
 
 class ProductViewSet(ModelViewSet):
     queryset = Product.objects.all()
@@ -31,12 +31,18 @@ class ProductViewSet(ModelViewSet):
     def get_serializer_context(self):
         return {'request': self.request}
     
-    def delete(self, request, pk: int):
-        product = get_object_or_404(Product, pk=pk)
-        if product.orderitems.count() > 0:
+    def destroy(self, request, *args, **kwargs):
+        if OrderItem.objects.get(product_id=kwargs['pk']).count() > 0:
             return Response({'error': 'Can\'t delete this product because it\'t associated with order item'}, status=status.HTTP_405_METHOD_NOT_ALLOWED)
-        product.delete()
-        return Response({'message': 'Product deleted successfully'}, status=status.HTTP_204_NO_CONTENT)
+        return super().destroy(request, *args, **kwargs)
+
+    
+    # def delete(self, request, pk: int):
+    #     product = get_object_or_404(Product, pk=pk)
+    #     if product.orderitems.count() > 0:
+    #         return Response({'error': 'Can\'t delete this product because it\'t associated with order item'}, status=status.HTTP_405_METHOD_NOT_ALLOWED)
+    #     product.delete()
+    #     return Response({'message': 'Product deleted successfully'}, status=status.HTTP_204_NO_CONTENT)
 
 # class ProductList(ListCreateAPIView):
 #     queryset = Product.objects.select_related('collection').all()
