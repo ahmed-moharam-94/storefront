@@ -1,10 +1,20 @@
+from dataclasses import field
 from decimal import Decimal
 
+from pyexpat import model
 from unittest import mock
+from urllib import request
 from wsgiref import validate
 from rest_framework import serializers
 
-from store.models import Product, Collection
+from store.models import Customer, Product, Collection, Review
+
+class CustomerSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Customer
+        fields = ['first_name', 'last_name', 'email', 'phone', 'membership']
+
+
 
 
 class CollectionSerializer(serializers.ModelSerializer):
@@ -52,6 +62,24 @@ class ProductSerializer(serializers.ModelSerializer):
 
     def calculate_price_with_tax(self, product: Product):
         return product.unit_price * Decimal(1.1)
+    
+
+class ReviewSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Review
+        fields = ['id', 'product' , 'customer', 'customer_id', 'description', 'date']
+
+    product = ProductSerializer(read_only=True)
+    customer = CustomerSerializer(read_only=True)
+    customer_id = serializers.PrimaryKeyRelatedField(
+        queryset = Customer.objects.all(),
+        source = 'customer',
+        write_only=True
+    )
+
+    def create(self, validated_data):
+        product_id = self.context['product_id']
+        return Review.objects.create(product_id=product_id, **validated_data)    
          
     
     # def validate(self, data):

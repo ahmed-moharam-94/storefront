@@ -1,7 +1,12 @@
+from logging import raiseExceptions
 from typing import Collection
+from urllib import request
+from venv import logger
 from django.shortcuts import get_object_or_404, get_list_or_404
-from django.http import HttpResponse
+from django_filters.rest_framework import DjangoFilterBackend
+from rest_framework.filters import SearchFilter, OrderingFilter
 from rest_framework import status
+from rest_framework.pagination import PageNumberPagination
 from rest_framework.generics import ListCreateAPIView, RetrieveUpdateDestroyAPIView
 from rest_framework.views import APIView
 from rest_framework.viewsets import ModelViewSet
@@ -10,23 +15,45 @@ from rest_framework.request import Request
 from rest_framework.response import Response
 
 from store import serializers
-from store.serializers import CollectionSerializer, ProductSerializer
+from store.pagination import DefaultPagination
+from .filters import ProductFilter
+from .serializers import CollectionSerializer, ProductSerializer, ReviewSerializer
 
 # from store.serializers import ProductSerializer
-from .models import OrderItem, Product, Collection
+from .models import OrderItem, Product, Collection, Review
 
+class ReviewViewSet(ModelViewSet):
+    serializer_class = ReviewSerializer
+
+    def get_queryset(self):
+        product_id = self.kwargs.get('product_pk')
+        # check if the product exists
+        get_object_or_404(Product, pk=product_id)
+        return Review.objects.filter(product_id=product_id).select_related('customer')
+
+    def get_serializer_context(self):
+        return {'product_id': self.kwargs['product_pk'], 'request': self.request}
+    
 class ProductViewSet(ModelViewSet):
-    queryset = Product.objects.all()
     serializer_class = ProductSerializer
+    
+    filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
+    # filterset_fields = ['collection_id'] 
+    filterset_class = ProductFilter
+    search_fields = ['title', 'description', 'collection__title']
+    ordering_fields = ['unit_price', 'last_update']
+    pagination_class = DefaultPagination
 
     def get_queryset(self):
         if self.action in ['list', 'retrieve']:
+            queryset = Product.objects.select_related('collection').all()
+            # collection_id = self.request.query_params.get('collection_id')
+            # if collection_id is not None:
+            #     queryset = queryset.filter(collection_id=collection_id)
             # Eager load 'collection' for GET requests
-            return Product.objects.select_related('collection').all()
+            return queryset
         # Use basic queryset for POST, PUT, DELETE
         return Product.objects.all()
-
-    
 
     def get_serializer_context(self):
         return {'request': self.request}
@@ -149,6 +176,9 @@ class ProductViewSet(ModelViewSet):
 class CollectionViewSet(ModelViewSet):
     queryset = Collection.objects.all()
     serializer_class = CollectionSerializer
+    # set pagination class to None to return all collections without pagination
+    pagination_class = None
+
 
     def delete(self, request, pk: int):
         collection = get_object_or_404(Collection, pk=pk)
