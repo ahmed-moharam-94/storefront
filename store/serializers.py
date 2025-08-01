@@ -1,20 +1,19 @@
-from dataclasses import field
+from dataclasses import field, fields
 from decimal import Decimal
 
-from pyexpat import model
+from os import nice
 from unittest import mock
 from urllib import request
 from wsgiref import validate
 from rest_framework import serializers
 
-from store.models import Customer, Product, Collection, Review
+from store.models import CartItem, Customer, Product, Collection, Review, Cart
+
 
 class CustomerSerializer(serializers.ModelSerializer):
     class Meta:
         model = Customer
         fields = ['first_name', 'last_name', 'email', 'phone', 'membership']
-
-
 
 
 class CollectionSerializer(serializers.ModelSerializer):
@@ -40,10 +39,11 @@ class CollectionSerializer(serializers.ModelSerializer):
 class ProductSerializer(serializers.ModelSerializer):
     class Meta:
         model = Product
-        fields = ['id', 'title', 'description', 'price', 'inventory','price_with_tax', 'collection', 'collection_id']
+        fields = ['id', 'title', 'description', 'price', 'inventory',
+                  'price_with_tax', 'collection', 'collection_id']
     # id = serializers.IntegerField()
     # title = serializers.CharField(max_length=255)
- 
+
     price = serializers.DecimalField(
         max_digits=6, decimal_places=2, source='unit_price')
     price_with_tax = serializers.SerializerMethodField(
@@ -56,38 +56,111 @@ class ProductSerializer(serializers.ModelSerializer):
 
     collection = serializers.HyperlinkedRelatedField(
         # queryset = Collection.objects.all(),
-        view_name = 'collection-detail',
-        read_only = True
+        view_name='collection-detail',
+        read_only=True
     )
 
     def calculate_price_with_tax(self, product: Product):
         return product.unit_price * Decimal(1.1)
-    
+
 
 class ReviewSerializer(serializers.ModelSerializer):
     class Meta:
         model = Review
-        fields = ['id', 'product' , 'customer', 'customer_id', 'description', 'date']
+        fields = ['id', 'product', 'customer',
+                  'customer_id', 'description', 'date']
 
     product = ProductSerializer(read_only=True)
     customer = CustomerSerializer(read_only=True)
     customer_id = serializers.PrimaryKeyRelatedField(
-        queryset = Customer.objects.all(),
-        source = 'customer',
+        queryset=Customer.objects.all(),
+        source='customer',
         write_only=True
     )
 
     def create(self, validated_data):
         product_id = self.context['product_id']
-        return Review.objects.create(product_id=product_id, **validated_data)    
-         
-    
+        return Review.objects.create(product_id=product_id, **validated_data)
+
+
+class UpdateCartItemSerializer(serializers.ModelSerializer):
+    product = ProductSerializer(read_only=True)
+
+    class Meta:
+        model = CartItem
+        fields = ['product', 'quantity']
+
+
+class AddCartItemSerializer(serializers.ModelSerializer):
+    product_id = serializers.PrimaryKeyRelatedField(
+        queryset=Product.objects.all(),
+        source='product',
+    )
+
+    def save(self, **kwargs):
+        # check if the product exist in the cart item then update else create
+        print("Serializer context:", self.context)
+
+        cart_id = self.context.get('cart_id')
+        product = self.validated_data.get('product')
+        quantity = self.validated_data.get('quantity')
+        try:
+            cart_item = CartItem.objects.get(
+                cart_id=cart_id, product_id=product.id)
+            # update the cart item
+            cart_item.quantity += quantity
+            cart_item.save()
+            ################ IMPORTANT: always update self.instance & return self.instance #######################
+            self.instance = cart_item
+        except CartItem.DoesNotExist:
+            # create a new cart item with the given product and quantity
+            # CartItem.objects.create(cart_id=cart_id, quantity=quantity, product_id=product_id)
+            cart_item = CartItem.objects.create(
+                cart_id=cart_id, **self.validated_data)
+            self.instance = cart_item
+        return self.instance
+
+    class Meta:
+        model = CartItem
+        fields = ['id', 'product_id', 'quantity']
+
+
+class CartItemSerializer(serializers.ModelSerializer):
+    product = ProductSerializer(read_only=True)
+    total_price = serializers.SerializerMethodField(
+        method_name='calculate_total_price'
+    )
+
+    def calculate_total_price(self, cartItem: CartItem):
+        return cartItem.quantity * cartItem.product.unit_price
+
+    class Meta:
+        model = CartItem
+        fields = ['id', 'product',  'quantity', 'total_price']
+
+
+class CartSerializer(serializers.ModelSerializer):
+    # id should be read only because client side should call a POST request to create a Cart and
+    # id is generated in the server side
+    id = serializers.UUIDField(read_only=True)
+    items = CartItemSerializer(read_only=True, many=True)
+    total_price = serializers.SerializerMethodField(
+        method_name='calculate_cart_total_price',
+        read_only=True,
+    )
+
+    def calculate_cart_total_price(self, cart: Cart):
+        return sum(item.product.unit_price * item.quantity for item in cart.items.all())
+
+    class Meta:
+        model = Cart
+        fields = ['id', 'items', 'total_price']
+
     # def validate(self, data):
     #     if data['password'] == data['confirm_password']:
     #         return data
     #     else:
     #         return serializers.ValidationError('Passwords doesn\'t match confirm password')
-
 
     # def create(self, validated_data):
     #     product = Product(**validated_data)

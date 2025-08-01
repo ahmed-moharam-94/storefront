@@ -3,13 +3,14 @@ from typing import Collection
 from urllib import request
 from venv import logger
 from django.shortcuts import get_object_or_404, get_list_or_404
+from rest_framework.mixins import CreateModelMixin, DestroyModelMixin, RetrieveModelMixin
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.filters import SearchFilter, OrderingFilter
 from rest_framework import status
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.generics import ListCreateAPIView, RetrieveUpdateDestroyAPIView
 from rest_framework.views import APIView
-from rest_framework.viewsets import ModelViewSet
+from rest_framework.viewsets import GenericViewSet, ModelViewSet
 from rest_framework.decorators import api_view
 from rest_framework.request import Request
 from rest_framework.response import Response
@@ -17,10 +18,11 @@ from rest_framework.response import Response
 from store import serializers
 from store.pagination import DefaultPagination
 from .filters import ProductFilter
-from .serializers import CollectionSerializer, ProductSerializer, ReviewSerializer
+from .serializers import AddCartItemSerializer, CartItemSerializer, CartSerializer, CollectionSerializer, ProductSerializer, ReviewSerializer, UpdateCartItemSerializer
 
 # from store.serializers import ProductSerializer
-from .models import OrderItem, Product, Collection, Review
+from .models import Cart, CartItem, OrderItem, Product, Collection, Review
+
 
 class ReviewViewSet(ModelViewSet):
     serializer_class = ReviewSerializer
@@ -33,12 +35,13 @@ class ReviewViewSet(ModelViewSet):
 
     def get_serializer_context(self):
         return {'product_id': self.kwargs['product_pk'], 'request': self.request}
-    
+
+
 class ProductViewSet(ModelViewSet):
     serializer_class = ProductSerializer
-    
+
     filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
-    # filterset_fields = ['collection_id'] 
+    # filterset_fields = ['collection_id']
     filterset_class = ProductFilter
     search_fields = ['title', 'description', 'collection__title']
     ordering_fields = ['unit_price', 'last_update']
@@ -57,13 +60,12 @@ class ProductViewSet(ModelViewSet):
 
     def get_serializer_context(self):
         return {'request': self.request}
-    
+
     def destroy(self, request, *args, **kwargs):
         if OrderItem.objects.get(product_id=kwargs['pk']).count() > 0:
             return Response({'error': 'Can\'t delete this product because it\'t associated with order item'}, status=status.HTTP_405_METHOD_NOT_ALLOWED)
         return super().destroy(request, *args, **kwargs)
 
-    
     # def delete(self, request, pk: int):
     #     product = get_object_or_404(Product, pk=pk)
     #     if product.orderitems.count() > 0:
@@ -74,17 +76,15 @@ class ProductViewSet(ModelViewSet):
 # class ProductList(ListCreateAPIView):
 #     queryset = Product.objects.select_related('collection').all()
 #     serializer_class = ProductSerializer
-    
+
 #     def get_serializer_context(self):
 #         return {'request': self.request}
-    
+
     # def get_queryset(self):
     #     return Product.objects.select_related('collection').all()
 
     # def get_serializer_class(self):
     #     return ProductSerializer
-    
-
 
 
 # class ProductList(APIView):
@@ -93,14 +93,14 @@ class ProductViewSet(ModelViewSet):
 #         serializer = ProductSerializer(
 #             products, many=True, context={'request': request})
 #         return Response(serializer.data)
-    
+
 #     def post(self, request):
 #         serializer = ProductSerializer(
 #         data=request.data, context={'request': request})
 #         serializer.is_valid(raise_exception=True)
 #         serializer.save()
 #         return Response(serializer.data, status=status.HTTP_201_CREATED)
-        
+
 
 # @api_view(['GET', 'POST'])
 # def product_list(request: Request) -> Response | None:
@@ -124,7 +124,7 @@ class ProductViewSet(ModelViewSet):
 #         product = get_object_or_404(Product, pk=id)
 #         serializer = ProductSerializer(product, context={'request': request})
 #         return Response(serializer.data)
-    
+
 #     def put(self, request, id: int):
 #         product = get_object_or_404(Product, pk=id)
 #         serializer = ProductSerializer(
@@ -132,7 +132,7 @@ class ProductViewSet(ModelViewSet):
 #         serializer.is_valid(raise_exception=True)
 #         serializer.save()
 #         return Response(serializer.data, status=status.HTTP_200_OK)
-    
+
 #     def delete(self, request, id: int):
 #         product = get_object_or_404(Product, pk=id)
 #         if product.orderitems.count() > 0:
@@ -140,7 +140,6 @@ class ProductViewSet(ModelViewSet):
 #         product.delete()
 #         return Response({'message': 'Product deleted successfully'}, status=status.HTTP_204_NO_CONTENT)
 
-        
 
 # class ProductDetails(RetrieveUpdateDestroyAPIView):
 #     queryset = Product.objects.all()
@@ -179,7 +178,6 @@ class CollectionViewSet(ModelViewSet):
     # set pagination class to None to return all collections without pagination
     pagination_class = None
 
-
     def delete(self, request, pk: int):
         collection = get_object_or_404(Collection, pk=pk)
         # check if the collection is attached to a product
@@ -191,7 +189,6 @@ class CollectionViewSet(ModelViewSet):
 # class CollectionList(ListCreateAPIView):
 #     queryset = Collection.objects.all()
 #     serializer_class = CollectionSerializer
-
 
 
 # collections
@@ -242,3 +239,34 @@ class CollectionViewSet(ModelViewSet):
 #             return Response(data={'error': 'Can\'t delete this collection because it\'s associated with products'})
 #         collection.delete()
 #         return Response(data={'message': 'deleted successfully'}, status=status.HTTP_204_NO_CONTENT)
+
+
+# create a custom view set because here we don't need the ListModelMixin nor the UpdateModelMixin
+# all we need is POST(CreateModelMixin), GET item(RetrieveModelMixin) & DELETE(DestroyModelMixin)
+# also we need to extend GenericViewSet although it doesn't have any actions but it the base set of generic view behavior, such as the `get_object` and `get_queryset` methods.
+class CartViewSet(GenericViewSet, CreateModelMixin, RetrieveModelMixin, DestroyModelMixin):
+    queryset = Cart.objects.prefetch_related('items__product').all() 
+    serializer_class = CartSerializer
+
+
+# We need to list, retrieve cart items, update, delete so extend the ModelViewSet
+class CartItemViewSet(ModelViewSet):
+    http_method_names = ['get', 'post', 'patch', 'delete']
+    def get_serializer_context(self):
+        return {'cart_id': self.kwargs.get('cart_pk'), 'request': self.request}
+    
+    def get_serializer_class(self):
+        if self.request.method == 'POST':
+            return AddCartItemSerializer
+        elif self.request.method is 'PATCH':
+            return UpdateCartItemSerializer
+
+        else:
+            return CartItemSerializer
+
+    def get_queryset(self):
+        cart_id = self.kwargs.get('cart_pk')
+        # check if the cart exists
+        get_object_or_404(Cart, pk=cart_id)
+        return CartItem.objects.select_related(
+            'product').filter(cart_id=cart_id)
