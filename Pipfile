@@ -11,6 +11,8 @@ djangorestframework = "*"
 drf-nested-routers = "*"
 django-filter = "*"
 colored-traceback = "*"
+djoser = "*"
+djangorestframework-simplejwt = "*"
 
 [dev-packages]
 
