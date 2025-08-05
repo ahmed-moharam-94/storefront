@@ -7,6 +7,7 @@ router = routers.DefaultRouter()
 router.register('products', views.ProductViewSet, basename='products')
 router.register('collections', views.CollectionViewSet)
 router.register('carts', views.CartViewSet)
+router.register('customers', views.CustomerViewSet)
 
 # pass the parent router, parent prefix, lookup parameter ex: (product_pk) to tell nested router how to look in parent (products)
 products_router = routers.NestedDefaultRouter(router, 'products', lookup='product')

@@ -3,7 +3,7 @@ from typing import Collection
 from urllib import request
 from venv import logger
 from django.shortcuts import get_object_or_404, get_list_or_404
-from rest_framework.mixins import CreateModelMixin, DestroyModelMixin, RetrieveModelMixin
+from rest_framework.mixins import CreateModelMixin, DestroyModelMixin, RetrieveModelMixin, UpdateModelMixin
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.filters import SearchFilter, OrderingFilter
 from rest_framework import status
@@ -18,10 +18,10 @@ from rest_framework.response import Response
 from store import serializers
 from store.pagination import DefaultPagination
 from .filters import ProductFilter
-from .serializers import AddCartItemSerializer, CartItemSerializer, CartSerializer, CollectionSerializer, ProductSerializer, ReviewSerializer, UpdateCartItemSerializer
+from .serializers import AddCartItemSerializer, CartItemSerializer, CartSerializer, CollectionSerializer, CustomerSerializer, ProductSerializer, ReviewSerializer, UpdateCartItemSerializer
 
 # from store.serializers import ProductSerializer
-from .models import Cart, CartItem, OrderItem, Product, Collection, Review
+from .models import Cart, CartItem, Customer, OrderItem, Product, Collection, Review
 
 
 class ReviewViewSet(ModelViewSet):
@@ -258,7 +258,7 @@ class CartItemViewSet(ModelViewSet):
     def get_serializer_class(self):
         if self.request.method == 'POST':
             return AddCartItemSerializer
-        elif self.request.method is 'PATCH':
+        elif self.request.method == 'PATCH':
             return UpdateCartItemSerializer
 
         else:
@@ -270,3 +270,10 @@ class CartItemViewSet(ModelViewSet):
         get_object_or_404(Cart, pk=cart_id)
         return CartItem.objects.select_related(
             'product').filter(cart_id=cart_id)
+
+
+class CustomerViewSet(CreateModelMixin, RetrieveModelMixin, UpdateModelMixin , GenericViewSet):
+    queryset = Customer.objects.all()
+    serializer_class = CustomerSerializer
+
+    
