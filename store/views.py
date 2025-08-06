@@ -11,7 +11,7 @@ from rest_framework.pagination import PageNumberPagination
 from rest_framework.generics import ListCreateAPIView, RetrieveUpdateDestroyAPIView
 from rest_framework.views import APIView
 from rest_framework.viewsets import GenericViewSet, ModelViewSet
-from rest_framework.decorators import api_view
+from rest_framework.decorators import action, api_view
 from rest_framework.request import Request
 from rest_framework.response import Response
 
@@ -276,4 +276,18 @@ class CustomerViewSet(CreateModelMixin, RetrieveModelMixin, UpdateModelMixin , G
     queryset = Customer.objects.all()
     serializer_class = CustomerSerializer
 
-    
+    @action(detail=False, methods=['GET', 'PATCH'])
+    def profile(self, request):
+        # use get_or_create so if we create a user without a profit it create it to us
+        (customer, created) = Customer.objects.get_or_create(user_id = request.user.id)
+        if request.method == 'GET':
+            # serialize the customer object
+            serializer = CustomerSerializer(customer)
+        elif request.method == 'PATCH':
+            serializer = CustomerSerializer(customer, data=request.data)
+            # validate incoming data
+            serializer.is_valid(raise_exception=True)
+            serializer.save()
+
+        
+        return Response(serializer.data)

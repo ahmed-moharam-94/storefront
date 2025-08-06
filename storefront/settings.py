@@ -154,6 +154,8 @@ REST_FRAMEWORK = {
 # when sending the token to the server we need to include this prefix in the request header
 SIMPLE_JWT = {
     'AUTH_HEADER_TYPES': ('JWT',),
+    "ACCESS_TOKEN_LIFETIME": timedelta(days=1)
+
 }
 
 DJOSER = {
@@ -166,12 +168,7 @@ AUTH_USER_MODEL = 'core.User'
 
 DJOSER = {
     'SERIALIZERS': {
-        'user_create': 'core.serializers.UserCreateSerializer'
+        'user_create': 'core.serializers.UserCreateSerializer',
+        'current_user': 'core.serializers.UserSerializer',
     }
 }
-
-SIMPLE_JWT = {
-    "ACCESS_TOKEN_LIFETIME": timedelta(days=1)
-    
-
-    }
