@@ -14,6 +14,7 @@ from rest_framework.viewsets import GenericViewSet, ModelViewSet
 from rest_framework.decorators import action, api_view
 from rest_framework.request import Request
 from rest_framework.response import Response
+from rest_framework.permissions import AllowAny, IsAuthenticated
 
 from store import serializers
 from store.pagination import DefaultPagination
@@ -245,16 +246,17 @@ class CollectionViewSet(ModelViewSet):
 # all we need is POST(CreateModelMixin), GET item(RetrieveModelMixin) & DELETE(DestroyModelMixin)
 # also we need to extend GenericViewSet although it doesn't have any actions but it the base set of generic view behavior, such as the `get_object` and `get_queryset` methods.
 class CartViewSet(GenericViewSet, CreateModelMixin, RetrieveModelMixin, DestroyModelMixin):
-    queryset = Cart.objects.prefetch_related('items__product').all() 
+    queryset = Cart.objects.prefetch_related('items__product').all()
     serializer_class = CartSerializer
 
 
 # We need to list, retrieve cart items, update, delete so extend the ModelViewSet
 class CartItemViewSet(ModelViewSet):
     http_method_names = ['get', 'post', 'patch', 'delete']
+
     def get_serializer_context(self):
         return {'cart_id': self.kwargs.get('cart_pk'), 'request': self.request}
-    
+
     def get_serializer_class(self):
         if self.request.method == 'POST':
             return AddCartItemSerializer
@@ -272,14 +274,21 @@ class CartItemViewSet(ModelViewSet):
             'product').filter(cart_id=cart_id)
 
 
-class CustomerViewSet(CreateModelMixin, RetrieveModelMixin, UpdateModelMixin , GenericViewSet):
+class CustomerViewSet(CreateModelMixin, RetrieveModelMixin, UpdateModelMixin, GenericViewSet):
     queryset = Customer.objects.all()
     serializer_class = CustomerSerializer
+    permission_classes = [IsAuthenticated]
 
-    @action(detail=False, methods=['GET', 'PATCH'])
+    def get_permissions(self):
+        if self.request.method == 'GET':
+            return [AllowAny()]
+        return [IsAuthenticated()]
+
+    @action(detail=False, methods=['GET', 'PATCH'], permission_classes=[IsAuthenticated])
     def profile(self, request):
         # use get_or_create so if we create a user without a profit it create it to us
-        (customer, created) = Customer.objects.get_or_create(user_id = request.user.id)
+        (customer, created) = Customer.objects.get_or_create(
+            user_id=request.user.id)
         if request.method == 'GET':
             # serialize the customer object
             serializer = CustomerSerializer(customer)
@@ -289,5 +298,4 @@ class CustomerViewSet(CreateModelMixin, RetrieveModelMixin, UpdateModelMixin , G
             serializer.is_valid(raise_exception=True)
             serializer.save()
 
-        
         return Response(serializer.data)
