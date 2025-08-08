@@ -14,7 +14,8 @@ from rest_framework.viewsets import GenericViewSet, ModelViewSet
 from rest_framework.decorators import action, api_view
 from rest_framework.request import Request
 from rest_framework.response import Response
-from rest_framework.permissions import AllowAny, IsAuthenticated
+from rest_framework.permissions import AllowAny, IsAdminUser, IsAuthenticated
+from .permissions import IsAdminOrReadOnly
 
 from store import serializers
 from store.pagination import DefaultPagination
@@ -47,6 +48,7 @@ class ProductViewSet(ModelViewSet):
     search_fields = ['title', 'description', 'collection__title']
     ordering_fields = ['unit_price', 'last_update']
     pagination_class = DefaultPagination
+    permission_classes = [IsAdminOrReadOnly]
 
     def get_queryset(self):
         if self.action in ['list', 'retrieve']:
@@ -178,6 +180,7 @@ class CollectionViewSet(ModelViewSet):
     serializer_class = CollectionSerializer
     # set pagination class to None to return all collections without pagination
     pagination_class = None
+    permission_classes = [IsAdminOrReadOnly]
 
     def delete(self, request, pk: int):
         collection = get_object_or_404(Collection, pk=pk)
@@ -274,10 +277,10 @@ class CartItemViewSet(ModelViewSet):
             'product').filter(cart_id=cart_id)
 
 
-class CustomerViewSet(CreateModelMixin, RetrieveModelMixin, UpdateModelMixin, GenericViewSet):
+class CustomerViewSet(ModelViewSet):
     queryset = Customer.objects.all()
     serializer_class = CustomerSerializer
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAdminUser]
 
     def get_permissions(self):
         if self.request.method == 'GET':
