@@ -14,8 +14,8 @@ from rest_framework.viewsets import GenericViewSet, ModelViewSet
 from rest_framework.decorators import action, api_view
 from rest_framework.request import Request
 from rest_framework.response import Response
-from rest_framework.permissions import AllowAny, IsAdminUser, IsAuthenticated
-from .permissions import IsAdminOrReadOnly
+from rest_framework.permissions import AllowAny, IsAdminUser, IsAuthenticated, DjangoModelPermissions
+from .permissions import FullDjangoModelPermission, IsAdminOrReadOnlyPermission
 
 from store import serializers
 from store.pagination import DefaultPagination
@@ -48,7 +48,7 @@ class ProductViewSet(ModelViewSet):
     search_fields = ['title', 'description', 'collection__title']
     ordering_fields = ['unit_price', 'last_update']
     pagination_class = DefaultPagination
-    permission_classes = [IsAdminOrReadOnly]
+    permission_classes = [IsAdminOrReadOnlyPermission]
 
     def get_queryset(self):
         if self.action in ['list', 'retrieve']:
@@ -180,7 +180,7 @@ class CollectionViewSet(ModelViewSet):
     serializer_class = CollectionSerializer
     # set pagination class to None to return all collections without pagination
     pagination_class = None
-    permission_classes = [IsAdminOrReadOnly]
+    permission_classes = [IsAdminOrReadOnlyPermission]
 
     def delete(self, request, pk: int):
         collection = get_object_or_404(Collection, pk=pk)
@@ -280,12 +280,12 @@ class CartItemViewSet(ModelViewSet):
 class CustomerViewSet(ModelViewSet):
     queryset = Customer.objects.all()
     serializer_class = CustomerSerializer
-    permission_classes = [IsAdminUser]
+    permission_classes = [FullDjangoModelPermission]
 
-    def get_permissions(self):
-        if self.request.method == 'GET':
-            return [AllowAny()]
-        return [IsAuthenticated()]
+    # def get_permissions(self):
+    #     if self.request.method == 'GET':
+    #         return [AllowAny()]
+    #     return [IsAuthenticated()]
 
     @action(detail=False, methods=['GET', 'PATCH'], permission_classes=[IsAuthenticated])
     def profile(self, request):
