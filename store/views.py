@@ -20,7 +20,7 @@ from .permissions import FullDjangoModelPermission, IsAdminOrReadOnlyPermission,
 from store import serializers
 from store.pagination import DefaultPagination
 from .filters import ProductFilter
-from .serializers import AddCartItemSerializer, CartItemSerializer, CartSerializer, CollectionSerializer, CustomerSerializer, OrderItemSerializer, OrderSerializer, ProductSerializer, ReviewSerializer, UpdateCartItemSerializer
+from .serializers import AddCartItemSerializer, CartItemSerializer, CartSerializer, CollectionSerializer, CreateOrderSerializer, CustomerSerializer, OrderItemSerializer, OrderSerializer, ProductSerializer, ReviewSerializer, UpdateCartItemSerializer
 
 # from store.serializers import ProductSerializer
 from .models import Cart, CartItem, Customer, Order, OrderItem, Product, Collection, Review
@@ -320,6 +320,16 @@ class OrderViewSet(ModelViewSet):
     serializer_class = OrderSerializer
     permission_classes = [IsAuthenticated]
 
+    def get_serializer_class(self):
+        if self.request.method == 'POST':
+            return CreateOrderSerializer
+        return OrderSerializer
+       
+    
+
+    def get_serializer_context(self):
+        return {'user_id': self.request.user.id}
+
 
 
     def get_queryset(self):
@@ -338,9 +348,14 @@ class OrderViewSet(ModelViewSet):
         serializer = self.get_serializer(orders, many=True, context={'request': request})
         return Response({'orders': serializer.data})
     
+
     def create(self, request, *args, **kwargs):
-        # check if the cart exist 
-        return super().create(request, *args, **kwargs)
+        serializer = CreateOrderSerializer(data=request.data, context={'user_id': self.request.user.id})
+        serializer.is_valid(raise_exception=True)
+        order = serializer.save()
+        serializer = OrderSerializer(order)
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
+
     
 
     

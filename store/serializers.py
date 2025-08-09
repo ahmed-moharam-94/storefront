@@ -1,10 +1,6 @@
 from dataclasses import field, fields
 from decimal import Decimal
-
-from os import nice
-from unittest import mock
-from urllib import request
-from wsgiref import validate
+from django.db import transaction
 from rest_framework import serializers
 
 from store.models import CartItem, Customer, Order, OrderItem, Product, Collection, Review, Cart
@@ -199,8 +195,8 @@ class OrderItemSerializer(serializers.ModelSerializer):
 class OrderSerializer(serializers.ModelSerializer):
     customer = serializers.PrimaryKeyRelatedField(
         read_only=True
-                )
-    
+    )
+
     items = OrderItemSerializer(many=True)
     total_price = serializers.SerializerMethodField(
         method_name='calculate_order_total_price',
@@ -208,9 +204,6 @@ class OrderSerializer(serializers.ModelSerializer):
 
     def calculate_order_total_price(self, order: Order):
         return sum(item.quantity * item.unit_price for item in order.items.all())
-    
-    # to create order using cart id
-    # cart_id = serializers.UUIDField(write_only=True) 
 
     class Meta:
         model = Order
@@ -218,4 +211,41 @@ class OrderSerializer(serializers.ModelSerializer):
                   'customer', 'items', 'total_price',
                   ]
 
+
+class CreateOrderSerializer(serializers.Serializer):
+    cart_id = serializers.UUIDField()
+
+    def save(self, **kwargs):
+        # make sure that all save methods even success together or non 
+        with transaction.atomic():
+            cart_id = self.validated_data['cart_id']
+            customer, isCreated = Customer.objects.get_or_create(
+                user_id=self.context['user_id'])
+
+            # create order at first with the given customer
+            order = Order.objects.create(customer=customer)
+
+            # get cart items and create order items depending on cart items
+            cart_items = CartItem.objects\
+                .select_related('product')\
+                .filter(cart_id=cart_id)
+
+            # map cart items to order items
+            order_items = [
+                OrderItem(
+                    order=order,
+                    product=item.product,
+                    quantity=item.quantity,
+                    unit_price=item.product.unit_price
+                ) for item in cart_items
+            ]
+
+            # create order items
+            oder = OrderItem.objects.bulk_create(order_items)
+
+            # delete cart 
+            Cart.objects.get(pk=cart_id).delete()
+
+            # return order to use it in view create method
+            return order
     
