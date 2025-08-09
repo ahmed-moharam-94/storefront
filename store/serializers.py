@@ -7,7 +7,7 @@ from urllib import request
 from wsgiref import validate
 from rest_framework import serializers
 
-from store.models import CartItem, Customer, Product, Collection, Review, Cart
+from store.models import CartItem, Customer, Order, OrderItem, Product, Collection, Review, Cart
 
 
 class CustomerSerializer(serializers.ModelSerializer):
@@ -176,6 +176,35 @@ class CartSerializer(serializers.ModelSerializer):
 
 class CustomerSerializer(serializers.ModelSerializer):
     user_id = serializers.IntegerField(read_only=True)
+
     class Meta:
         model = Customer
         fields = ['id', 'user_id', 'phone', 'birth_date', 'membership']
+
+
+class OrderItemSerializer(serializers.ModelSerializer):
+    product = ProductSerializer()
+
+    class Meta:
+        model = OrderItem
+        fields = ['id', 'product', 'quantity', 'unit_price']
+
+
+class OrderSerializer(serializers.ModelSerializer):
+    customer = serializers.PrimaryKeyRelatedField(
+        read_only=True
+                )
+    
+    items = OrderItemSerializer(many=True)
+    total_price = serializers.SerializerMethodField(
+        method_name='calculate_order_total_price',
+    )
+
+    def calculate_order_total_price(self, order: Order):
+        return sum(item.quantity * item.unit_price for item in order.items.all())
+
+    class Meta:
+        model = Order
+        fields = ['id', 'placed_at', 'payment_status',
+                  'customer', 'items', 'total_price',
+                  ]

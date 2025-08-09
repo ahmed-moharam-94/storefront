@@ -20,10 +20,10 @@ from .permissions import FullDjangoModelPermission, IsAdminOrReadOnlyPermission,
 from store import serializers
 from store.pagination import DefaultPagination
 from .filters import ProductFilter
-from .serializers import AddCartItemSerializer, CartItemSerializer, CartSerializer, CollectionSerializer, CustomerSerializer, ProductSerializer, ReviewSerializer, UpdateCartItemSerializer
+from .serializers import AddCartItemSerializer, CartItemSerializer, CartSerializer, CollectionSerializer, CustomerSerializer, OrderSerializer, ProductSerializer, ReviewSerializer, UpdateCartItemSerializer
 
 # from store.serializers import ProductSerializer
-from .models import Cart, CartItem, Customer, OrderItem, Product, Collection, Review
+from .models import Cart, CartItem, Customer, Order, OrderItem, Product, Collection, Review
 
 
 class ReviewViewSet(ModelViewSet):
@@ -278,7 +278,7 @@ class CartItemViewSet(ModelViewSet):
 
 
 class CustomerViewSet(ModelViewSet):
-    queryset = Customer.objects.all()
+    queryset = Customer.objects.select_related('user').all()
     serializer_class = CustomerSerializer
     permission_classes = [IsAdminUser]
 
@@ -290,7 +290,7 @@ class CustomerViewSet(ModelViewSet):
     @action(detail=False, methods=['GET', 'PATCH'], permission_classes=[IsAuthenticated])
     def profile(self, request):
         # use get_or_create so if we create a user without a profit it create it to us
-        (customer, created) = Customer.objects.get_or_create(
+        (customer, created) = Customer.objects.select_related('user').get_or_create(
             user_id=request.user.id)
         if request.method == 'GET':
             # serialize the customer object
@@ -306,3 +306,21 @@ class CustomerViewSet(ModelViewSet):
     @action(detail=True, permission_classes=[ViewCustomerHistoryPermission])
     def history(self, request, pk):
         return Response('OK')
+    
+    
+    
+
+
+class OrderViewSet(ModelViewSet):
+    # eager loading for products 
+    queryset = Order.objects.select_related('customer').prefetch_related('items__product').all()
+    serializer_class = OrderSerializer
+    permission_classes = [IsAdminUser]
+
+    def list(self, request, *args, **kwargs):
+        orders = self.get_queryset()
+        serializer = self.get_serializer(orders, many=True, context={'request': request})
+        return Response({'orders': serializer.data})
+    
+
+    
