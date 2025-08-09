@@ -15,7 +15,7 @@ from rest_framework.decorators import action, api_view
 from rest_framework.request import Request
 from rest_framework.response import Response
 from rest_framework.permissions import AllowAny, IsAdminUser, IsAuthenticated, DjangoModelPermissions
-from .permissions import FullDjangoModelPermission, IsAdminOrReadOnlyPermission, ViewCustomerHistoryPermission
+from .permissions import FullDjangoModelPermission, IsAdminOrReadOnlyPermission, OrderCreatedByThisCustomer, ViewCustomerHistoryPermission
 
 from store import serializers
 from store.pagination import DefaultPagination
@@ -306,56 +306,65 @@ class CustomerViewSet(ModelViewSet):
     @action(detail=True, permission_classes=[ViewCustomerHistoryPermission])
     def history(self, request, pk):
         return Response('OK')
-    
 
-# class OrderItemViewSet(ModelViewSet):   
+
+# class OrderItemViewSet(ModelViewSet):
 #     queryset = OrderItem.objects.select_related('product').all()
 #     serializer_class = OrderItemSerializer()
 #     # permission_classes = []
-    
 
 
 class OrderViewSet(ModelViewSet):
-    # eager loading for products 
+    http_method_names = ['get', 'patch', 'delete', 'head', 'options']
+    # eager loading for products
     serializer_class = OrderSerializer
     permission_classes = [IsAuthenticated]
+
+    def get_permissions(self):
+        if self.action == 'create':
+            return [IsAuthenticated()]
+
+        if self.action in ['update', 'partial_update', 'destroy']:
+            return [IsAuthenticated(), IsAdminUser()]
+
+        if self.action == 'list':
+            if self.request.user.is_staff:
+                return [IsAuthenticated(), IsAdminUser()]
+            else:
+                # non admin users should be able to list orders put they will only get there orders
+                return [IsAuthenticated()]
+
+        if self.action == 'retrieve':
+            return [IsAuthenticated(), OrderCreatedByThisCustomer()]
+
+        return [IsAuthenticated()]
 
     def get_serializer_class(self):
         if self.request.method == 'POST':
             return CreateOrderSerializer
         return OrderSerializer
-       
-    
-
-    def get_serializer_context(self):
-        return {'user_id': self.request.user.id}
-
-
 
     def get_queryset(self):
-       # check if the user is admin then get all orders
-       if self.request.user.is_staff:
-           return Order.objects.select_related('customer').prefetch_related('items__product').all()
+        # check if the user is admin then get all orders
+        if self.request.user.is_staff:
+            return Order.objects.select_related('customer').prefetch_related('items__product').all()
 
         # if the user is not admin only get his orders
-       customer_id, isCreated = Customer.objects.only('id').get_or_create(user_id=self.request.user.id)
+        customer_id, isCreated = Customer.objects.only(
+            'id').get_or_create(user_id=self.request.user.id)
 
-       return Order.objects.prefetch_related('items__product').filter(customer_id=customer_id).all()
-   
+        return Order.objects.prefetch_related('items__product').filter(customer_id=customer_id).all()
 
     def list(self, request, *args, **kwargs):
         orders = self.get_queryset()
-        serializer = self.get_serializer(orders, many=True, context={'request': request})
+        serializer = self.get_serializer(
+            orders, many=True, context={'request': request})
         return Response({'orders': serializer.data})
-    
 
     def create(self, request, *args, **kwargs):
-        serializer = CreateOrderSerializer(data=request.data, context={'user_id': self.request.user.id})
+        serializer = CreateOrderSerializer(data=request.data, context={
+                                           'user_id': self.request.user.id})
         serializer.is_valid(raise_exception=True)
         order = serializer.save()
         serializer = OrderSerializer(order)
         return Response(serializer.data, status=status.HTTP_201_CREATED)
-
-    
-
-    
