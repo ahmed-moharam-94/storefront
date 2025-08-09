@@ -20,7 +20,7 @@ from .permissions import FullDjangoModelPermission, IsAdminOrReadOnlyPermission,
 from store import serializers
 from store.pagination import DefaultPagination
 from .filters import ProductFilter
-from .serializers import AddCartItemSerializer, CartItemSerializer, CartSerializer, CollectionSerializer, CustomerSerializer, OrderSerializer, ProductSerializer, ReviewSerializer, UpdateCartItemSerializer
+from .serializers import AddCartItemSerializer, CartItemSerializer, CartSerializer, CollectionSerializer, CustomerSerializer, OrderItemSerializer, OrderSerializer, ProductSerializer, ReviewSerializer, UpdateCartItemSerializer
 
 # from store.serializers import ProductSerializer
 from .models import Cart, CartItem, Customer, Order, OrderItem, Product, Collection, Review
@@ -307,20 +307,40 @@ class CustomerViewSet(ModelViewSet):
     def history(self, request, pk):
         return Response('OK')
     
-    
+
+# class OrderItemViewSet(ModelViewSet):   
+#     queryset = OrderItem.objects.select_related('product').all()
+#     serializer_class = OrderItemSerializer()
+#     # permission_classes = []
     
 
 
 class OrderViewSet(ModelViewSet):
     # eager loading for products 
-    queryset = Order.objects.select_related('customer').prefetch_related('items__product').all()
     serializer_class = OrderSerializer
-    permission_classes = [IsAdminUser]
+    permission_classes = [IsAuthenticated]
+
+
+
+    def get_queryset(self):
+       # check if the user is admin then get all orders
+       if self.request.user.is_staff:
+           return Order.objects.select_related('customer').prefetch_related('items__product').all()
+
+        # if the user is not admin only get his orders
+       customer_id, isCreated = Customer.objects.only('id').get_or_create(user_id=self.request.user.id)
+
+       return Order.objects.prefetch_related('items__product').filter(customer_id=customer_id).all()
+   
 
     def list(self, request, *args, **kwargs):
         orders = self.get_queryset()
         serializer = self.get_serializer(orders, many=True, context={'request': request})
         return Response({'orders': serializer.data})
+    
+    def create(self, request, *args, **kwargs):
+        # check if the cart exist 
+        return super().create(request, *args, **kwargs)
     
 
     

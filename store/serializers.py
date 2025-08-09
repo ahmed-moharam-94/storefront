@@ -208,9 +208,14 @@ class OrderSerializer(serializers.ModelSerializer):
 
     def calculate_order_total_price(self, order: Order):
         return sum(item.quantity * item.unit_price for item in order.items.all())
+    
+    # to create order using cart id
+    # cart_id = serializers.UUIDField(write_only=True) 
 
     class Meta:
         model = Order
         fields = ['id', 'placed_at', 'payment_status',
                   'customer', 'items', 'total_price',
                   ]
+
+    
