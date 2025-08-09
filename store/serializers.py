@@ -212,6 +212,11 @@ class OrderSerializer(serializers.ModelSerializer):
                   ]
 
 
+class UpdateOrderSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Order
+        fields = ['payment_status']
+
 class CreateOrderSerializer(serializers.Serializer):
     cart_id = serializers.UUIDField()
 
@@ -219,7 +224,7 @@ class CreateOrderSerializer(serializers.Serializer):
     def validate_cart_id(self, cart_id):
         if not Cart.objects.filter(pk=cart_id).exists():
             raise serializers.ValidationError('No cart with this id')
-        if Cart.objects.get(pk=cart_id).items.count() == 0:
+        if Cart.objects.filter(pk=cart_id).items.count() == 0:
             raise serializers.ValidationError('Cart is Empty')
 
     def save(self, **kwargs):

@@ -20,7 +20,7 @@ from .permissions import FullDjangoModelPermission, IsAdminOrReadOnlyPermission,
 from store import serializers
 from store.pagination import DefaultPagination
 from .filters import ProductFilter
-from .serializers import AddCartItemSerializer, CartItemSerializer, CartSerializer, CollectionSerializer, CreateOrderSerializer, CustomerSerializer, OrderItemSerializer, OrderSerializer, ProductSerializer, ReviewSerializer, UpdateCartItemSerializer
+from .serializers import AddCartItemSerializer, CartItemSerializer, CartSerializer, CollectionSerializer, CreateOrderSerializer, CustomerSerializer, OrderItemSerializer, OrderSerializer, ProductSerializer, ReviewSerializer, UpdateCartItemSerializer, UpdateOrderSerializer
 
 # from store.serializers import ProductSerializer
 from .models import Cart, CartItem, Customer, Order, OrderItem, Product, Collection, Review
@@ -332,6 +332,7 @@ class OrderViewSet(ModelViewSet):
                 return [IsAuthenticated(), IsAdminUser()]
             else:
                 # non admin users should be able to list orders put they will only get there orders
+                # check the override of the get_queryset
                 return [IsAuthenticated()]
 
         if self.action == 'retrieve':
@@ -342,6 +343,8 @@ class OrderViewSet(ModelViewSet):
     def get_serializer_class(self):
         if self.request.method == 'POST':
             return CreateOrderSerializer
+        elif self.request.method == 'PATCH':
+            return UpdateOrderSerializer
         return OrderSerializer
 
     def get_queryset(self):
