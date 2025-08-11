@@ -289,8 +289,9 @@ class CustomerViewSet(ModelViewSet):
 
     @action(detail=False, methods=['GET', 'PATCH'], permission_classes=[IsAuthenticated])
     def profile(self, request):
-        # use get_or_create so if we create a user without a profit it create it to us
-        (customer, created) = Customer.objects.select_related('user').get_or_create(
+        # xxxxxx use get_or_create so if we create a user without a profit it create it to us
+        # use signals
+        (customer, created) = Customer.objects.select_related('user').get(
             user_id=request.user.id)
         if request.method == 'GET':
             # serialize the customer object
@@ -353,8 +354,8 @@ class OrderViewSet(ModelViewSet):
             return Order.objects.select_related('customer').prefetch_related('items__product').all()
 
         # if the user is not admin only get his orders
-        customer_id, isCreated = Customer.objects.only(
-            'id').get_or_create(user_id=self.request.user.id)
+        customer_id = Customer.objects.only(
+            'id').get(user_id=self.request.user.id)
 
         return Order.objects.prefetch_related('items__product').filter(customer_id=customer_id).all()
 

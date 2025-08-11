@@ -231,7 +231,7 @@ class CreateOrderSerializer(serializers.Serializer):
         # make sure that all save methods even success together or non 
         with transaction.atomic():
             cart_id = self.validated_data['cart_id']
-            customer, isCreated = Customer.objects.get_or_create(
+            customer = Customer.objects.get(
                 user_id=self.context['user_id'])
 
             # create order at first with the given customer
