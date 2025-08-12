@@ -4,15 +4,14 @@ verify_ssl = true
 name = "pypi"
 
 [packages]
-django = "*"
 django-debug-toolbar = "*"
-mysqlclient = "*"
 djangorestframework = "*"
 drf-nested-routers = "*"
-django-filter = "*"
-colored-traceback = "*"
 djoser = "*"
 djangorestframework-simplejwt = "*"
+django-filter = "*"
+mysqlclient = "*"
+django = "*"
 
 [dev-packages]
 

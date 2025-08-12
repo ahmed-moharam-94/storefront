@@ -20,7 +20,7 @@ from .permissions import FullDjangoModelPermission, IsAdminOrReadOnlyPermission,
 from store import serializers
 from store.pagination import DefaultPagination
 from .filters import ProductFilter
-from .serializers import AddCartItemSerializer, CartItemSerializer, CartSerializer, CollectionSerializer, CreateOrderSerializer, CustomerSerializer, OrderItemSerializer, OrderSerializer, ProductSerializer, ReviewSerializer, UpdateCartItemSerializer
+from .serializers import AddCartItemSerializer, CartItemSerializer, CartSerializer, CollectionSerializer, CreateOrderSerializer, CustomerSerializer, OrderItemSerializer, OrderSerializer, ProductSerializer, ReviewSerializer, UpdateCartItemSerializer, UpdateOrderSerializer
 
 # from store.serializers import ProductSerializer
 from .models import Cart, CartItem, Customer, Order, OrderItem, Product, Collection, Review
@@ -289,8 +289,9 @@ class CustomerViewSet(ModelViewSet):
 
     @action(detail=False, methods=['GET', 'PATCH'], permission_classes=[IsAuthenticated])
     def profile(self, request):
-        # use get_or_create so if we create a user without a profit it create it to us
-        (customer, created) = Customer.objects.select_related('user').get_or_create(
+        # xxxxxx use get_or_create so if we create a user without a profit it create it to us
+        # use signals
+        (customer, created) = Customer.objects.select_related('user').get(
             user_id=request.user.id)
         if request.method == 'GET':
             # serialize the customer object
@@ -315,7 +316,7 @@ class CustomerViewSet(ModelViewSet):
 
 
 class OrderViewSet(ModelViewSet):
-    http_method_names = ['get', 'patch', 'delete', 'head', 'options']
+    http_method_names = ['get', 'post', 'patch', 'delete', 'head', 'options']
     # eager loading for products
     serializer_class = OrderSerializer
     permission_classes = [IsAuthenticated]
@@ -332,6 +333,7 @@ class OrderViewSet(ModelViewSet):
                 return [IsAuthenticated(), IsAdminUser()]
             else:
                 # non admin users should be able to list orders put they will only get there orders
+                # check the override of the get_queryset
                 return [IsAuthenticated()]
 
         if self.action == 'retrieve':
@@ -342,6 +344,8 @@ class OrderViewSet(ModelViewSet):
     def get_serializer_class(self):
         if self.request.method == 'POST':
             return CreateOrderSerializer
+        elif self.request.method == 'PATCH':
+            return UpdateOrderSerializer
         return OrderSerializer
 
     def get_queryset(self):
@@ -350,8 +354,8 @@ class OrderViewSet(ModelViewSet):
             return Order.objects.select_related('customer').prefetch_related('items__product').all()
 
         # if the user is not admin only get his orders
-        customer_id, isCreated = Customer.objects.only(
-            'id').get_or_create(user_id=self.request.user.id)
+        customer_id = Customer.objects.only(
+            'id').get(user_id=self.request.user.id)
 
         return Order.objects.prefetch_related('items__product').filter(customer_id=customer_id).all()
 
@@ -363,8 +367,8 @@ class OrderViewSet(ModelViewSet):
 
     def create(self, request, *args, **kwargs):
         serializer = CreateOrderSerializer(data=request.data, context={
-                                           'user_id': self.request.user.id})
+                                           'user_id': self.request.user.id, 'request': request})
         serializer.is_valid(raise_exception=True)
         order = serializer.save()
-        serializer = OrderSerializer(order)
+        serializer = OrderSerializer(order, context={'request': request})
         return Response(serializer.data, status=status.HTTP_201_CREATED)

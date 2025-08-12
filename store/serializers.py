@@ -3,7 +3,9 @@ from decimal import Decimal
 from django.db import transaction
 from rest_framework import serializers
 
+from store.signals import order_created
 from store.models import CartItem, Customer, Order, OrderItem, Product, Collection, Review, Cart
+
 
 
 class CustomerSerializer(serializers.ModelSerializer):
@@ -212,21 +214,33 @@ class OrderSerializer(serializers.ModelSerializer):
                   ]
 
 
+class UpdateOrderSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Order
+        fields = ['payment_status']
+
 class CreateOrderSerializer(serializers.Serializer):
     cart_id = serializers.UUIDField()
 
-    # validate if the cart exist and if the cart is not empty
+ # validate if the cart exists and if the cart is not empty
     def validate_cart_id(self, cart_id):
-        if not Cart.objects.filter(pk=cart_id).exists():
-            raise serializers.ValidationError('No cart with this id')
-        if Cart.objects.get(pk=cart_id).items.count() == 0:
-            raise serializers.ValidationError('Cart is Empty')
+        try:
+            cart = Cart.objects.get(pk=cart_id)
+        except Cart.DoesNotExist:
+            # This catches the case where the cart doesn't exist
+            raise serializers.ValidationError('No cart with this id was found.')
+
+        if cart.items.count() == 0:
+            # This checks if the existing cart is empty
+            raise serializers.ValidationError('The cart is empty.')
+
+        return cart_id
 
     def save(self, **kwargs):
         # make sure that all save methods even success together or non 
         with transaction.atomic():
             cart_id = self.validated_data['cart_id']
-            customer, isCreated = Customer.objects.get_or_create(
+            customer = Customer.objects.get(
                 user_id=self.context['user_id'])
 
             # create order at first with the given customer
@@ -248,11 +262,13 @@ class CreateOrderSerializer(serializers.Serializer):
             ]
 
             # create order items
-            oder = OrderItem.objects.bulk_create(order_items)
+            OrderItem.objects.bulk_create(order_items)
 
             # delete cart 
             Cart.objects.get(pk=cart_id).delete()
 
+            # fire order_created signal
+            order_created.send_robust(self.__class__, order=order)
             # return order to use it in view create method
             return order
     
