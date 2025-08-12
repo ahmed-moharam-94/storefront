@@ -219,6 +219,11 @@ class UpdateOrderSerializer(serializers.ModelSerializer):
         model = Order
         fields = ['payment_status']
 
+class UpdateOrderSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Order
+        fields = ['payment_status']
+
 class CreateOrderSerializer(serializers.Serializer):
     cart_id = serializers.UUIDField()
 
@@ -240,6 +245,7 @@ class CreateOrderSerializer(serializers.Serializer):
         # make sure that all save methods even success together or non 
         with transaction.atomic():
             cart_id = self.validated_data['cart_id']
+            customer = Customer.objects.get(
             customer = Customer.objects.get(
                 user_id=self.context['user_id'])
 
