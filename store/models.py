@@ -1,3 +1,4 @@
+from itertools import product
 from uuid import uuid4
 from django.conf import settings
 from django.contrib import admin
@@ -40,6 +41,10 @@ class Product(models.Model):
 
     class Meta:
         ordering = ['title']
+
+class ProductImage(models.Model):
+    product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name='images')
+    image = models.ImageField(upload_to='store/images')
 
 
 class Customer(models.Model):
