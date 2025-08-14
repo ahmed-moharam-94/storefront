@@ -189,3 +189,16 @@ DJOSER = {
         'current_user': 'core.serializers.UserSerializer',
     }
 }
+
+EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
+EMAIL_HOST = 'localhost'
+EMAIL_HOST_USER = ''
+EMAIL_HOST_PASSWORD = ''
+# by default SMTP server is running on port 25 
+# because this is a fake email port it will be 2525
+EMAIL_PORT = 2525
+DEFAULT_FROM_EMAIL = 'ahmedezzat008@gmail.com'
+
+ADMINS = [
+    ('Moharam', 'moharam@test.ocm'),
+]
