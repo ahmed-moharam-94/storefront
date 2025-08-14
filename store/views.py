@@ -20,10 +20,10 @@ from .permissions import FullDjangoModelPermission, IsAdminOrReadOnlyPermission,
 from store import serializers
 from store.pagination import DefaultPagination
 from .filters import ProductFilter
-from .serializers import AddCartItemSerializer, CartItemSerializer, CartSerializer, CollectionSerializer, CreateOrderSerializer, CustomerSerializer, OrderItemSerializer, OrderSerializer, ProductSerializer, ReviewSerializer, UpdateCartItemSerializer, UpdateOrderSerializer
+from .serializers import AddCartItemSerializer, CartItemSerializer, CartSerializer, CollectionSerializer, CreateOrderSerializer, CustomerSerializer, OrderItemSerializer, OrderSerializer, ProductImageSerializer, ProductSerializer, ReviewSerializer, UpdateCartItemSerializer, UpdateOrderSerializer
 
 # from store.serializers import ProductSerializer
-from .models import Cart, CartItem, Customer, Order, OrderItem, Product, Collection, Review
+from .models import Cart, CartItem, Customer, Order, OrderItem, Product, Collection, ProductImage, Review
 
 
 class ReviewViewSet(ModelViewSet):
@@ -52,14 +52,14 @@ class ProductViewSet(ModelViewSet):
 
     def get_queryset(self):
         if self.action in ['list', 'retrieve']:
-            queryset = Product.objects.select_related('collection').all()
+            queryset = Product.objects.prefetch_related('images').select_related('collection').all()
             # collection_id = self.request.query_params.get('collection_id')
             # if collection_id is not None:
             #     queryset = queryset.filter(collection_id=collection_id)
             # Eager load 'collection' for GET requests
             return queryset
         # Use basic queryset for POST, PUT, DELETE
-        return Product.objects.all()
+        return Product.objects.prefetch_related('images').all()
 
     def get_serializer_context(self):
         return {'request': self.request}
@@ -75,6 +75,15 @@ class ProductViewSet(ModelViewSet):
     #         return Response({'error': 'Can\'t delete this product because it\'t associated with order item'}, status=status.HTTP_405_METHOD_NOT_ALLOWED)
     #     product.delete()
     #     return Response({'message': 'Product deleted successfully'}, status=status.HTTP_204_NO_CONTENT)
+
+class ProductImageViewSet(ModelViewSet):
+    serializer_class = ProductImageSerializer
+    
+    def get_serializer_context(self):
+        return {'product_id': self.kwargs['product_pk']}
+    
+    def get_queryset(self):
+        return ProductImage.objects.filter(product_id=self.kwargs['product_pk'])
 
 # class ProductList(ListCreateAPIView):
 #     queryset = Product.objects.select_related('collection').all()

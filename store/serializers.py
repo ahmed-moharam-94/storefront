@@ -4,7 +4,7 @@ from django.db import transaction
 from rest_framework import serializers
 
 from store.signals import order_created
-from store.models import CartItem, Customer, Order, OrderItem, Product, Collection, Review, Cart
+from store.models import CartItem, Customer, Order, OrderItem, Product, Collection, Review, Cart, ProductImage
 
 
 
@@ -33,12 +33,19 @@ class CollectionSerializer(serializers.ModelSerializer):
     #     allow_null=True
     # )
 
+class ProductImageSerializer(serializers.ModelSerializer):
+    def create(self, validated_data):
+        return ProductImage.objects.create(product_id=self.context['product_id'], **validated_data)
+    class Meta:
+        model = ProductImage
+        fields = ['id', 'image']
 
 class ProductSerializer(serializers.ModelSerializer):
+    images = ProductImageSerializer(many=True, read_only=True)
     class Meta:
         model = Product
         fields = ['id', 'title', 'description', 'price', 'inventory',
-                  'price_with_tax', 'collection', 'collection_id']
+                  'price_with_tax', 'collection', 'collection_id', 'images']
     # id = serializers.IntegerField()
     # title = serializers.CharField(max_length=255)
 
@@ -60,6 +67,7 @@ class ProductSerializer(serializers.ModelSerializer):
 
     def calculate_price_with_tax(self, product: Product):
         return product.unit_price * Decimal(1.1)
+
 
 
 class ReviewSerializer(serializers.ModelSerializer):
