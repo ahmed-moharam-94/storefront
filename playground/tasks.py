@@ -6,5 +6,5 @@ def notify_customers(message):
     print('sending 10k emails')
     print(message)
     # simulate task time
-    sleep(20)
+    sleep(10)
     print('emails were successfully sent')
