@@ -4,7 +4,9 @@ from django.contrib.auth.models import User
 from rest_framework import status
 import pytest
 from rest_framework.test import APIClient
+from model_bakery import baker
 
+from store.models import Collection, Product
 
 @pytest.fixture
 def create_collection(api_client):
@@ -50,7 +52,26 @@ class TestCreateCollection:
         authenticate_user(is_staff=True)
         response = create_collection({'title': 'a'})
 
-        # Assert
+        # Assert 
         assert response.status_code == status.HTTP_201_CREATED
         # when the data is valid check the id of the created object
         assert response.data['id'] is not None
+
+@pytest.mark.django_db
+class TestRetrieveCollection:
+    def test_if_collection_exists_return_201(self, api_client):
+        # Arrange
+        # we need to create a collection first to retrieve it
+        # you shouldn't make this test dependent on any other tests (create collection test).
+        collection = baker.make(Collection)
+
+        # Act 
+        response = api_client.get(f'/store/collections/{collection.id}/')    
+
+        # Assert
+        assert response.status_code == status.HTTP_200_OK
+        assert response.data == {
+            'id': collection.id,
+            'title': collection.title,
+            'products_count': 0,
+        }
