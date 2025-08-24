@@ -17,7 +17,7 @@ class WebstiteUser(HttpUser):
 
     @task(4)
     def view_product(self):
-        product_id = randint(1, 1000)
+        product_id = randint(1, 20)
         self.client.get(
             f"/store/products/{product_id}",
             name="/store/products/:id",
