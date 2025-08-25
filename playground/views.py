@@ -2,6 +2,7 @@ from django.core.mail import send_mail, mail_admins, EmailMessage, BadHeaderErro
 from django.shortcuts import render
 from templated_mail.mail import BaseEmailMessage
 from .tasks import notify_customers
+import requests
 
 
 def say_hello(request):
@@ -34,5 +35,8 @@ def say_hello(request):
 
 
     # background task example
-    notify_customers.delay('Test Message')
+    # notify_customers.delay('Test Message')
+
+    # simulate a slow endpoint
+    requests.get('https://httpbin.org/delay/2')
     return render(request, 'hello.html', {'name': 'Mosh'})
