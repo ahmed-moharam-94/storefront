@@ -14,6 +14,7 @@ class HelloView(APIView):
         response = requests.get("https://httpbin.org/delay/2")
         data = response.json()
         return render(request, "hello.html", {"name": data}) 
+    
 
 
 # @cache_page(5 * 60)
