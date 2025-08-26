@@ -21,6 +21,7 @@ redis = "*"
 django-redis = "*"
 colored-traceback = "*"
 django-silk = "*"
+whitenoise = "*"
 
 [dev-packages]
 pytest = "*"
