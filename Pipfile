@@ -15,9 +15,10 @@ django = "*"
 pillow = "*"
 django-cors-headers = "*"
 django-templated-mail = "*"
-redis = "*"
 celery = "*"
 flower = "*"
+redis = "*"
+django-redis = "*"
 
 [dev-packages]
 pytest = "*"
