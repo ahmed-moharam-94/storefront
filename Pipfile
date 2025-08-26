@@ -19,6 +19,8 @@ celery = "*"
 flower = "*"
 redis = "*"
 django-redis = "*"
+colored-traceback = "*"
+django-silk = "*"
 
 [dev-packages]
 pytest = "*"
