@@ -9,7 +9,7 @@ from .tasks import notify_customers
 import requests
 
 class HelloView(APIView):
-    @method_decorator(cache_page(10 * 6))
+    @method_decorator(cache_page(10 * 60))
     def get(self, request):
         response = requests.get("https://httpbin.org/delay/2")
         data = response.json()
@@ -54,7 +54,7 @@ class HelloView(APIView):
 #     #     # simulate a slow endpoint
 #     #     response = requests.get("https://httpbin.org/delay/2")
 #     #     data = response.json()
-#     #     cache.set(key, data, 10 * 60)
+#     #     cache.set(key, data, 10 * 600)
     
 #     # use cache decorator
 #     response = requests.get("https://httpbin.org/delay/2")

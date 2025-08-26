@@ -37,6 +37,13 @@ class WebstiteUser(HttpUser):
             },
         )
 
+    @task(1)
+    def call_say_hello(self):
+        self.client.get(
+            "/playground/hello/",
+            name="/playground/hello",
+        )
+
     def on_start(self):
         response = self.client.post("/store/carts/")
         result = response.json()
