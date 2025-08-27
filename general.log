@@ -54,3 +54,25 @@ Watching for file changes with StatReloader
 2025-08-27 08:51:40,113 (INFO) - django.utils.autoreload - Watching for file changes with StatReloader
 2025-08-27 08:51:42,019 (INFO) - playground.views - Calling httpbin
 2025-08-27 08:51:43,836 (INFO) - playground.views - Received the response
+2025-08-27 09:44:38,265 (INFO) - django.utils.autoreload - Watching for file changes with StatReloader
+2025-08-27 09:45:59,233 (INFO) - django.utils.autoreload - /Users/masarat/development/django_projects/storefront/.venv/lib/python3.13/site-packages/requests/api.py changed, reloading.
+2025-08-27 09:46:01,361 (INFO) - django.utils.autoreload - Watching for file changes with StatReloader
+2025-08-27 09:46:03,022 (INFO) - django.utils.autoreload - /Users/masarat/development/django_projects/storefront/.venv/lib/python3.13/site-packages/charset_normalizer/__init__.py changed, reloading.
+2025-08-27 09:46:04,567 (INFO) - django.utils.autoreload - Watching for file changes with StatReloader
+2025-08-27 09:46:44,178 (INFO) - django.utils.autoreload - /Users/masarat/development/django_projects/storefront/.venv/lib/python3.13/site-packages/charset_normalizer/__init__.py changed, reloading.
+2025-08-27 09:46:45,014 (INFO) - django.utils.autoreload - Watching for file changes with StatReloader
+2025-08-27 09:47:13,196 (WARNING) - django.request - Unauthorized: /store/collections/
+2025-08-27 09:47:13,210 (WARNING) - django.request - Forbidden: /store/collections/
+2025-08-27 09:47:13,222 (WARNING) - django.request - Bad Request: /store/collections/
+2025-08-27 09:48:15,732 (INFO) - django.utils.autoreload - /Users/masarat/development/django_projects/storefront/.venv/lib/python3.13/site-packages/requests/compat.py changed, reloading.
+2025-08-27 09:48:16,417 (INFO) - django.utils.autoreload - Watching for file changes with StatReloader
+2025-08-27 09:48:55,752 (WARNING) - django.request - Unauthorized: /store/collections/
+2025-08-27 09:48:55,765 (WARNING) - django.request - Forbidden: /store/collections/
+2025-08-27 09:48:55,777 (WARNING) - django.request - Bad Request: /store/collections/
+2025-08-27 09:51:18,962 (INFO) - django.utils.autoreload - /Users/masarat/development/django_projects/storefront/storefront/settings/common.py changed, reloading.
+2025-08-27 09:51:19,849 (INFO) - django.utils.autoreload - Watching for file changes with StatReloader
+2025-08-27 09:51:36,274 (WARNING) - django.request - Unauthorized: /store/collections/
+2025-08-27 09:51:36,309 (WARNING) - django.request - Forbidden: /store/collections/
+2025-08-27 09:51:36,345 (WARNING) - django.request - Bad Request: /store/collections/
+2025-08-27 10:03:33,463 (INFO) - playground.views - Calling httpbin
+2025-08-27 10:03:36,976 (INFO) - playground.views - Received the response

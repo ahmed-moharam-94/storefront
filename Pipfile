@@ -22,14 +22,15 @@ django-redis = "*"
 colored-traceback = "*"
 django-silk = "*"
 whitenoise = "*"
+gunicorn = "*"
 
 [dev-packages]
-pytest = "*"
 pytest-django = "*"
 pytest-watch = "*"
 model-bakery = "*"
 locust = "*"
 django-silk = "*"
+pytest = "*"
 
 [requires]
 python_version = "3.9"

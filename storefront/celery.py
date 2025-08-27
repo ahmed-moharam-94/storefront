@@ -2,7 +2,7 @@ import os
 from celery import Celery
 
 # set default environment
-os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'storefront.settings')
+os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'storefront.settings.dev')
 
 # create a celery object and give it a name
 celery = Celery('storefront')
