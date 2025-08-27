@@ -13,7 +13,7 @@ logger = logging.getLogger(__name__)
 
 
 class HelloView(APIView):
-    @method_decorator(cache_page(10 * 60))
+    # @method_decorator(cache_page(10 * 60))
     def get(self, request):
         try:
             logger.info("Calling httpbin")
@@ -22,7 +22,8 @@ class HelloView(APIView):
             data = response.json()
         except request.ConnectionError:
             logger.critical("httpbin is offline")
-        return render(request, "hello.html", {"name": data})
+        return render(request, "hello.html", {"name": data}) 
+
 
 
 # @cache_page(5 * 60)
