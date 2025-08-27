@@ -247,6 +247,8 @@ LOGGING = {
             'class': 'logging.FileHandler',
             # specify a file name
             'filename': 'general.log',
+            # specify a formatter
+            'formatter': 'verbose'
         },
        
     },
