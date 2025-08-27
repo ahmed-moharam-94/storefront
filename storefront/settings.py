@@ -231,3 +231,48 @@ CACHES = {
         }
     }
 }
+
+LOGGING = {
+    'version': 1,
+    # set disable_exsiting_loggers to False to collect all logers that comes with django or any library we use
+    'disable_exsiting_loggers': False,
+    # define what we are going to do with our loggs print it in the console, write to a file, etc
+    'handlers': {
+        # print the logs in console
+        'console': {
+            'class': 'logging.StreamHandler'
+        },
+        # write the logs to a file
+        'file': {
+            'class': 'logging.FileHandler',
+            # specify a file name
+            'filename': 'general.log',
+        },
+       
+    },
+     # we can define one or more loggers, you can also specify the module that the logs 
+     # will be captured from, if you set the key to '' it capture the logs from all apps
+        'loggers': {
+            '': {
+                # specify the handlers (what we will do with the captured logs)
+                # set it the handlers we specified earlier
+                'handlers': ['console', 'file'],
+                # define the level of severity (the logger will capture this level & higher)
+                # level of severity: DEBUG, INFO, WARNING, ERROR, CRITICAL
+                # 'level': 'ERROR', # This will catch ERROR & CRITICAL 
+                # we can set the level from production environment, set INFO as default so 
+                # we don't provide DJANGO_LOG_LEVEL variable it set to INFO
+                'level': os.environ.get('DJANGO_LOG_LEVEL', 'INFO')
+            }
+        },
+        
+        # optionally we can spicify a formatter (how the log will be written), 
+        # simple (show only the message), verbose (show additional info)
+        'formatters': {
+            # 'simple': '',
+            'verbose': '{asctime} ({levelname}) - {name} - {message}',
+            # str.fomat()
+            'style': '{'
+        }
+    
+}
