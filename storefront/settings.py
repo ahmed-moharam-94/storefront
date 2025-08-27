@@ -234,9 +234,9 @@ CACHES = {
 
 LOGGING = {
     'version': 1,
-    # set disable_exsiting_loggers to False to collect all logers that comes with django or any library we use
-    'disable_exsiting_loggers': False,
-    # define what we are going to do with our loggs print it in the console, write to a file, etc
+    # set disable_existing_loggers to False to collect all loges that comes with django or any library we use
+    'disable_existing_loggers': False,
+    # define what we are going to do with our logs print it in the console, write to a file, etc
     'handlers': {
         # print the logs in console
         'console': {
@@ -269,10 +269,14 @@ LOGGING = {
         # optionally we can spicify a formatter (how the log will be written), 
         # simple (show only the message), verbose (show additional info)
         'formatters': {
-            # 'simple': '',
-            'verbose': '{asctime} ({levelname}) - {name} - {message}',
-            # str.fomat()
+               'verbose': {
+            'format': '{asctime} ({levelname}) - {name} - {message}',
+            'style': '{' # This specifies the format string syntax
+        },
+        'simple': {
+            'format': '{levelname} {message}',
             'style': '{'
+        }
         }
     
 }

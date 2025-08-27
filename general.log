@@ -1,0 +1,41 @@
+2025-08-27 08:19:15,585 (INFO) - django.utils.autoreload - Watching for file changes with StatReloader
+2025-08-27 08:19:19,960 (INFO) - playground.views - Calling httpbin
+2025-08-27 08:19:22,890 (INFO) - playground.views - Received the response
+2025-08-27 08:19:28,765 (INFO) - django.utils.autoreload - /Users/masarat/development/django_projects/storefront/storefront/settings.py changed, reloading.
+2025-08-27 08:19:51,833 (INFO) - django.utils.autoreload - Watching for file changes with StatReloader
+2025-08-27 08:19:58,668 (INFO) - django.utils.autoreload - /Users/masarat/development/django_projects/storefront/storefront/settings.py changed, reloading.
+2025-08-27 08:19:59,391 (INFO) - django.utils.autoreload - Watching for file changes with StatReloader
+2025-08-27 08:20:05,055 (INFO) - django.utils.autoreload - /Users/masarat/development/django_projects/storefront/storefront/settings.py changed, reloading.
+2025-08-27 08:20:05,754 (INFO) - django.utils.autoreload - Watching for file changes with StatReloader
+2025-08-27 08:20:08,287 (INFO) - django.utils.autoreload - /Users/masarat/development/django_projects/storefront/storefront/settings.py changed, reloading.
+2025-08-27 08:20:08,936 (INFO) - django.utils.autoreload - Watching for file changes with StatReloader
+2025-08-27 08:20:20,848 (INFO) - django.utils.autoreload - /Users/masarat/development/django_projects/storefront/storefront/settings.py changed, reloading.
+2025-08-27 08:20:21,680 (INFO) - django.utils.autoreload - Watching for file changes with StatReloader
+2025-08-27 08:20:23,282 (INFO) - django.utils.autoreload - /Users/masarat/development/django_projects/storefront/storefront/settings.py changed, reloading.
+2025-08-27 08:20:23,963 (INFO) - django.utils.autoreload - Watching for file changes with StatReloader
+2025-08-27 08:21:11,371 (INFO) - django.utils.autoreload - /Users/masarat/development/django_projects/storefront/storefront/settings.py changed, reloading.
+Watching for file changes with StatReloader
+/Users/masarat/development/django_projects/storefront/storefront/settings.py changed, reloading.
+2025-08-27 08:22:40,813 (INFO) - django.utils.autoreload - Watching for file changes with StatReloader
+2025-08-27 08:22:43,321 (INFO) - django.utils.autoreload - /Users/masarat/development/django_projects/storefront/storefront/settings.py changed, reloading.
+2025-08-27 08:22:43,999 (INFO) - django.utils.autoreload - Watching for file changes with StatReloader
+2025-08-27 08:22:45,457 (INFO) - django.utils.autoreload - /Users/masarat/development/django_projects/storefront/storefront/settings.py changed, reloading.
+Watching for file changes with StatReloader
+/Users/masarat/development/django_projects/storefront/storefront/settings.py changed, reloading.
+Watching for file changes with StatReloader
+Calling httpbin
+Received the response
+/Users/masarat/development/django_projects/storefront/storefront/settings.py changed, reloading.
+Watching for file changes with StatReloader
+/Users/masarat/development/django_projects/storefront/storefront/settings.py changed, reloading.
+Watching for file changes with StatReloader
+/Users/masarat/development/django_projects/storefront/storefront/settings.py changed, reloading.
+Watching for file changes with StatReloader
+/Users/masarat/development/django_projects/storefront/storefront/settings.py changed, reloading.
+Watching for file changes with StatReloader
+/Users/masarat/development/django_projects/storefront/storefront/settings.py changed, reloading.
+Watching for file changes with StatReloader
+/Users/masarat/development/django_projects/storefront/storefront/settings.py changed, reloading.
+Watching for file changes with StatReloader
+/Users/masarat/development/django_projects/storefront/storefront/settings.py changed, reloading.
+Watching for file changes with StatReloader
