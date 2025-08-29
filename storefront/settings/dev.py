@@ -27,6 +27,13 @@ CACHES = {
     }
 }
 
+EMAIL_HOST = 'localhost'
+EMAIL_HOST_USER = ''
+EMAIL_HOST_PASSWORD = ''
+# by default SMTP server is running on port 25 
+# because this is a fake email port it will be 2525
+EMAIL_PORT = 2525
+
 if DEBUG:
       MIDDLEWARE += ['silk.middleware.SilkyMiddleware']
 

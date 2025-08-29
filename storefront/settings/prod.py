@@ -28,3 +28,10 @@ CACHES = {
         }
     }
 }
+
+EMAIL_HOST = os.environ['MAILGUN_SMTP_SERVER']
+EMAIL_HOST_USER = os.environ['MAILGUN_SMTP_LOGIN']
+EMAIL_HOST_PASSWORD = os.environ['MAILGUN_SMTP_PASSWORD']
+# by default SMTP server is running on port 25 
+# because this is a fake email port it will be 2525
+EMAIL_PORT = os.environ['MAILGUN_SMTP_PORT']
