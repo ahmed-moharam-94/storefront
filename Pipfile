@@ -23,6 +23,7 @@ colored-traceback = "*"
 django-silk = "*"
 whitenoise = "*"
 gunicorn = "*"
+dj-database-url = "*"
 
 [dev-packages]
 pytest-django = "*"
