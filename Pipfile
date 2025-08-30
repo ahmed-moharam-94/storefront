@@ -24,6 +24,7 @@ django-silk = "*"
 whitenoise = "*"
 gunicorn = "*"
 dj-database-url = "*"
+django-freeze = "*"
 
 [dev-packages]
 pytest-django = "*"

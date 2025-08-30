@@ -22,9 +22,17 @@ class Tag(models.Model):
         return self.label
 
 
+# to define a generic relationship you have to define 3 required fields
+# 1) content_type: ForeignKey(ContentType)
+# 2) object_id: PositiveIntegerField()
+# 3) content_object: GenericForeignKey()
 class TaggedItem(models.Model):
-    objects = TaggedItemManager()
-    tag = models.ForeignKey(Tag, on_delete=models.CASCADE)
+    # 3 required fields to define a generic relationship
     content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE)
     object_id = models.PositiveIntegerField()
     content_object = GenericForeignKey()
+
+
+    tag = models.ForeignKey(Tag, on_delete=models.CASCADE)
+    # override objects to use TaggedItemManager()
+    objects = TaggedItemManager()
