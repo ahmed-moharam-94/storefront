@@ -2,7 +2,10 @@ from ast import Delete
 from dataclasses import field, fields
 from decimal import Decimal
 from django.db import transaction
+from django.contrib.contenttypes.models import ContentType
+from likes.models import LikedItem
 from rest_framework import serializers
+
 
 from store.signals import order_created
 from store.models import CartItem, Customer, Order, OrderItem, Product, Collection, Review, Cart, ProductImage
@@ -281,3 +284,53 @@ class CreateOrderSerializer(serializers.Serializer):
             order_created.send_robust(self.__class__, order=order)
             # return order to use it in view create method
             return order
+        
+
+
+# because we have a custom implementation to create method
+# we will extend from Serializer and not ModelSerializer
+class LikeProductSerializer(serializers.Serializer):
+    product_id = serializers.PrimaryKeyRelatedField(
+        queryset=Product.objects.all(),
+        write_only=True
+    )
+
+    def save(self, **kwargs):
+        user = self.context['request'].user
+        product = self.validated_data['product_id']
+
+        # get the product content type
+        product_content_type = ContentType.objects.get_for_model(Product)
+
+        # check if the user has liked this product
+        already_liked = user.likeditem_set.filter(object_id=product.id).exists()
+
+        if already_liked:
+            # delete the liked item
+            liked_item = LikedItem.objects.filter(user=user, object_id=product.id)
+            liked_item.delete()
+            return None
+        else:
+            # create a liked item
+            liked_item = LikedItem.objects.create(user=user, content_type=product_content_type, object_id=product.id)
+            return liked_item
+        
+
+class LikedItemSerializer(serializers.ModelSerializer):
+    product = serializers.SerializerMethodField(
+        method_name='get_product',
+    )
+
+    # get the liked item and then get the product object
+    def get_product(self, liked_item: LikedItem):
+        # check if the content object exists and is a product instance
+        if liked_item.content_object and isinstance(liked_item.content_object, Product):
+            # if it exists serialize it and return it's data
+            return ProductSerializer(liked_item.content_object, context=self.context).data
+        return None
+
+
+    class Meta:
+        model = LikedItem
+        fields = ['product']
+        read_only_fields = ['product']

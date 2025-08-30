@@ -20,7 +20,7 @@ from .permissions import FullDjangoModelPermission, IsAdminOrReadOnlyPermission,
 from store import serializers
 from store.pagination import DefaultPagination
 from .filters import ProductFilter
-from .serializers import AddCartItemSerializer, CartItemSerializer, CartSerializer, CollectionSerializer, CreateOrderSerializer, CustomerSerializer, OrderItemSerializer, OrderSerializer, ProductImageSerializer, ProductSerializer, ReviewSerializer, UpdateCartItemSerializer, UpdateOrderSerializer
+from .serializers import AddCartItemSerializer, CartItemSerializer, CartSerializer, CollectionSerializer, CreateOrderSerializer, CustomerSerializer, LikeProductSerializer, LikedItemSerializer, OrderItemSerializer, OrderSerializer, ProductImageSerializer, ProductSerializer, ReviewSerializer, UpdateCartItemSerializer, UpdateOrderSerializer
 
 # from store.serializers import ProductSerializer
 from .models import Cart, CartItem, Customer, Order, OrderItem, Product, Collection, ProductImage, Review
@@ -381,3 +381,20 @@ class OrderViewSet(ModelViewSet):
         order = serializer.save()
         serializer = OrderSerializer(order, context={'request': request})
         return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+
+class LikeProductApiView(APIView):
+    # authenticated user only can like/unlike products
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request):
+        serializer = LikeProductSerializer(data=request.data, context={'request': request})
+        # validate the data
+        serializer.is_valid(raise_exception=True)
+        # save and return the liked_item
+        liked_item = serializer.save()
+        # Check if an item was created or if an item was deleted
+        if liked_item:
+            return Response(LikedItemSerializer(liked_item, context={'request': request}).data, status=status.HTTP_201_CREATED)
+        else:
+            return Response(status=status.HTTP_204_NO_CONTENT)        

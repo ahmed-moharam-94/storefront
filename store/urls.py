@@ -11,7 +11,6 @@ router.register('carts', views.CartViewSet)
 router.register('customers', views.CustomerViewSet)
 router.register('orders', views.OrderViewSet, basename='orders')
 
-
 ############### Nested Routers ################
 # products nested routes
 # pass the parent router, parent prefix, lookup parameter ex: (product_pk) to tell nested router how to look in parent (products)
@@ -26,8 +25,8 @@ carts_router = routers.NestedDefaultRouter(router, 'carts', lookup='cart')
 # when call /items/ in cart url it will use CartItemViewSet & will generate the basename(list, detail) cart-items-list, cart-items-detail 
 carts_router.register('items', views.CartItemViewSet, basename='cart-items')
 
-#TODO: orders nested routes
-
 
 # URLConf
-urlpatterns = router.urls + products_router.urls + carts_router.urls
+urlpatterns = [
+    path('products/like/', views.LikeProductApiView.as_view(), name='like-product'),
+] + router.urls + products_router.urls + carts_router.urls
