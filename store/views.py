@@ -20,7 +20,7 @@ from .permissions import FullDjangoModelPermission, IsAdminOrReadOnlyPermission,
 from store import serializers
 from store.pagination import DefaultPagination
 from .filters import ProductFilter
-from .serializers import AddCartItemSerializer, CartItemSerializer, CartSerializer, CollectionSerializer, CreateOrderSerializer, CustomerSerializer, LikeProductSerializer, LikedItemSerializer, OrderItemSerializer, OrderSerializer, ProductImageSerializer, ProductSerializer, ReviewSerializer, UpdateCartItemSerializer, UpdateOrderSerializer
+from .serializers import AddCartItemSerializer, CartItemSerializer, CartSerializer, CollectionSerializer, CreateOrderSerializer, CustomerLikesSerializer, CustomerSerializer, LikeProductSerializer, LikedItemSerializer, OrderItemSerializer, OrderSerializer, ProductImageSerializer, ProductSerializer, ReviewSerializer, UpdateCartItemSerializer, UpdateOrderSerializer
 
 # from store.serializers import ProductSerializer
 from .models import Cart, CartItem, Customer, Order, OrderItem, Product, Collection, ProductImage, Review
@@ -300,7 +300,7 @@ class CustomerViewSet(ModelViewSet):
     def profile(self, request):
         # xxxxxx use get_or_create so if we create a user without a profit it create it to us
         # use signals
-        (customer, created) = Customer.objects.select_related('user').get(
+        customer = Customer.objects.select_related('user').get(
             user_id=request.user.id)
         if request.method == 'GET':
             # serialize the customer object
@@ -316,6 +316,16 @@ class CustomerViewSet(ModelViewSet):
     @action(detail=True, permission_classes=[ViewCustomerHistoryPermission])
     def history(self, request, pk):
         return Response('OK')
+    
+
+    @action(detail=False, permission_classes=[IsAuthenticated])
+    def likes(self, request):
+        customer = Customer.objects.select_related('user').get(user_id=request.user.id)
+        if request.method == 'GET':
+            serializer = CustomerLikesSerializer(customer, context={'request': request})
+            # return the data
+            return Response(serializer.data)
+
 
 
 # class OrderItemViewSet(ModelViewSet):

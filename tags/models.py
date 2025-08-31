@@ -36,3 +36,5 @@ class TaggedItem(models.Model):
     tag = models.ForeignKey(Tag, on_delete=models.CASCADE)
     # override objects to use TaggedItemManager()
     objects = TaggedItemManager()
+
+

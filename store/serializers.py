@@ -1,8 +1,11 @@
 from ast import Delete
 from dataclasses import field, fields
 from decimal import Decimal
+from pyexpat import model
+from tkinter import TRUE
 from django.db import transaction
 from django.contrib.contenttypes.models import ContentType
+from core.admin import User
 from likes.models import LikedItem
 from rest_framework import serializers
 
@@ -334,3 +337,23 @@ class LikedItemSerializer(serializers.ModelSerializer):
         model = LikedItem
         fields = ['product']
         read_only_fields = ['product']
+
+
+class CustomerLikesSerializer(serializers.ModelSerializer):
+    liked_items = serializers.SerializerMethodField()
+
+    def get_liked_items(self, customer:Customer):
+        # get the user by customer id
+        user = customer.user
+
+        # get the customer likeditem_set 
+        # eager load content object
+        liked_item_queryset = user.likeditem_set.all().prefetch_related('content_object')
+        # return the serializer data not the serializer it self
+        return LikedItemSerializer(liked_item_queryset, many=True, context=self.context).data
+    
+
+    class Meta:
+        model = Customer
+        fields = ['liked_items']
+        read_only_fields = ['liked_items']
