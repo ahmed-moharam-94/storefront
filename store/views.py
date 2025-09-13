@@ -10,7 +10,7 @@ from rest_framework import status
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.generics import ListCreateAPIView, RetrieveUpdateDestroyAPIView
 from rest_framework.views import APIView
-from rest_framework.viewsets import GenericViewSet, ModelViewSet
+from rest_framework.viewsets import GenericViewSet, ModelViewSet, ViewSet
 from rest_framework.decorators import action, api_view
 from rest_framework.request import Request
 from rest_framework.response import Response
@@ -63,6 +63,7 @@ class ProductViewSet(ModelViewSet):
 
     def get_serializer_context(self):
         return {'request': self.request}
+    
 
     def destroy(self, request, *args, **kwargs):
         if OrderItem.objects.get(product_id=kwargs['pk']).count() > 0:
@@ -340,6 +341,8 @@ class OrderViewSet(ModelViewSet):
     serializer_class = OrderSerializer
     permission_classes = [IsAuthenticated]
 
+    
+
     def get_permissions(self):
         if self.action == 'create':
             return [IsAuthenticated()]
@@ -359,6 +362,7 @@ class OrderViewSet(ModelViewSet):
             return [IsAuthenticated(), OrderCreatedByThisCustomer()]
 
         return [IsAuthenticated()]
+    
 
     def get_serializer_class(self):
         if self.request.method == 'POST':
@@ -407,4 +411,7 @@ class LikeProductApiView(APIView):
         if liked_item:
             return Response(LikedItemSerializer(liked_item, context={'request': request}).data, status=status.HTTP_201_CREATED)
         else:
-            return Response(status=status.HTTP_204_NO_CONTENT)        
+            return Response(status=status.HTTP_204_NO_CONTENT)   
+
+
+    

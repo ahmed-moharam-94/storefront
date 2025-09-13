@@ -38,7 +38,7 @@ class ProductAdmin(admin.ModelAdmin):
         'slug': ['title']
     }
     actions = ['clear_inventory']
-    inlines = ['ProductImageInline']
+    inlines = [ProductImageInline]
     list_display = ['title', 'unit_price',
                     'inventory_status', 'collection_title']
     list_editable = ['unit_price']
